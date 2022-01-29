@@ -9,7 +9,7 @@ from sklearn.model_selection import TimeSeriesSplit
 
 def cross_validation(df):
 
-    tss = TimeSeriesSplit(n_splits=5)
+    tss = TimeSeriesSplit(n_splits=4)
 
     df.loc[:,'fold'] = 0
 

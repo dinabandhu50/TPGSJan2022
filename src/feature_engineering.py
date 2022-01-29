@@ -56,13 +56,33 @@ def engineer(df):
     
     df["is_weekend"] = df['day_of_week'] >= 5
 
+    # # lag features
+    # df['Lag_1'] = df['num_sold'].shift(18)
+
+    # adding step 
+    df['step'] = df['date']-df['date'].shift(1)     #shift index and find difference
+    zero = np.timedelta64(0, 's')       
+    df['step'][0] = np.timedelta64(0, 's')          #change first var from naT to zero
+    df['step'] = df['step'].apply(lambda x: x>zero).cumsum()
+    df['step^2'] = df['step']**2
+
     # gdp column
     df_gdp.columns = ['Finland', 'Norway', 'Sweden']
     gdp_dictionary = df_gdp.unstack().to_dict()
     df['gdp'] = df.set_index(['country','year']).index.map(gdp_dictionary.get)
+    
+    # gdp per capita
+    Sweden_ec = {2015:[51545,-.1412],2016:[51965,.0081],2017:[53792,.0351],2018:[54589,.0148],2019:[51687,-.0532]}
+    Finland_ec = {2015:[42802,-.1495],2016:[43814,.0236],2017:[46412,.0593],2018:[50038,.0781],2019:[48712,-.0265]}
+    Norway_ec = {2015:[74356,-.2336],2016:[70461,-.0524],2017:[75497,0.0715],2018:[82268,.0897],2019:[75826,-.0783]}
 
+    df['GDPperCapita'] = [Sweden_ec[a.year][0] if b =='Sweden' else(Finland_ec[a.year][0] if b =='Finland' else Norway_ec[a.year][0]) for a,b in zip(df.date,df.country)]
+    df['GrowthRate']  = [Sweden_ec[a.year][1] if b =='Sweden' else(Finland_ec[a.year][1] if b =='Finland' else Norway_ec[a.year][1]) for a,b in zip(df.date,df.country)]
+
+    # holiday
     df['holiday_name'] = df.apply(get_holiday_name, axis=1)
     df['is_holiday'] = np.where(df['holiday_name'] != "NA", 1, 0).astype(np.int)
+    
     # one hot encoding
     df = pd.get_dummies(df, columns=['store', 'country', 'product'])
     # dropping unused

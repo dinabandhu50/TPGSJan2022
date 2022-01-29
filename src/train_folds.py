@@ -27,8 +27,15 @@ def train_folds(fold, df, model_name):
 
     # model training
     model = models[model_name]
+
     # model train
-    model.fit(xtrain,ytrain)
+    if model_name == 'xgb':
+        model.fit(xtrain, ytrain, eval_set = [[xtrain, ytrain],[xvalid, yvalid]])
+    elif model_name == 'cat':
+        model.fit(xtrain,ytrain, eval_set = (xvalid, yvalid))
+    else:
+        model.fit(xtrain,ytrain)
+        
     # evaluate
     y_pred_train =  model.predict(xtrain)
     y_pred_valid =  model.predict(xvalid)
@@ -62,10 +69,10 @@ if __name__ == '__main__':
     # model_names = ['rf','xgb', 'cat']
     # model_names = ['rf']
     # model_names = ['rf','cat']
-    # model_names = ['cat']
-    model_names = ['xgb']
+    model_names = ['cat']
+    # model_names = ['xgb']
 
-    folds = 5
+    folds = 4
     df = pd.read_csv(os.path.join(config.ROOT_DIR,"data","processed","train_feat_eng_00.csv"))
     
     for model_name in model_names:
@@ -83,4 +90,4 @@ if __name__ == '__main__':
         dfs = pd.concat(dfs)
         print(f'model={model_name}, Average, smape_train={np.mean(smape_train_avg):2.7f} \u00B1 {np.std(smape_train_avg):2.7f}, f1_valid={np.mean(smape_valid_avg):2.7f} \u00B1 {np.std(smape_valid_avg):2.7f} ')
         dfs.to_csv(os.path.join(config.ROOT_DIR, "oofs",f"{model_name}_preds.csv"), index=False)
-        print(f"--- {time.time() - start_time:.4f} seconds ---")
+        print(f"---------- {time.time() - start_time:.4f} seconds ----------")

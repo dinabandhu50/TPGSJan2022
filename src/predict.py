@@ -27,7 +27,8 @@ def predict(model_name):
 if __name__ == '__main__':
     start_time = time.time()
 
-    model_names = ['rf','xgb','cat']
+    # model_names = ['rf','xgb','cat']
+    model_names = ['xgb']
     # model_names = ['rf']
     # model_names = ['rf','cat']
 
