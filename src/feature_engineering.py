@@ -3,6 +3,8 @@ import config
 import numpy as np
 import pandas as pd
 import holidays
+import dateutil.easter as easter
+
 
 years = [2015, 2016, 2017, 2018, 2019]
 country_list = [
@@ -71,6 +73,7 @@ def engineer(df):
     gdp_dictionary = df_gdp.unstack().to_dict()
     df['gdp'] = df.set_index(['country','year']).index.map(gdp_dictionary.get)
     
+    # --------------------------------------------------------------------
     # gdp per capita
     Sweden_ec = {2015:[51545,-.1412],2016:[51965,.0081],2017:[53792,.0351],2018:[54589,.0148],2019:[51687,-.0532]}
     Finland_ec = {2015:[42802,-.1495],2016:[43814,.0236],2017:[46412,.0593],2018:[50038,.0781],2019:[48712,-.0265]}
@@ -83,6 +86,44 @@ def engineer(df):
     df['holiday_name'] = df.apply(get_holiday_name, axis=1)
     df['is_holiday'] = np.where(df['holiday_name'] != "NA", 1, 0).astype(np.int)
     
+    # features for fe-01 --------------------------------------------------------------
+    gdp_exponent = 1.2121103201489674
+    df['gdp'] = df['gdp'] ** gdp_exponent
+    # Easter
+    easter_date = df.date.apply(lambda date: pd.Timestamp(easter.easter(date.year)))
+    df['days_from_easter'] = (df.date - easter_date).dt.days.clip(-5, 65)
+
+    # Last Sunday of May (Mother's Day)
+    sun_may_date = df.date.dt.year.map({
+        2015: pd.Timestamp(('2015-5-31')),
+        2016: pd.Timestamp(('2016-5-29')),
+        2017: pd.Timestamp(('2017-5-28')),
+        2018: pd.Timestamp(('2018-5-27')),
+        2019: pd.Timestamp(('2019-5-26'))
+    })
+    #new_df['days_from_sun_may'] = (df.date - sun_may_date).dt.days.clip(-1, 9)
+    
+    # Last Wednesday of June
+    wed_june_date = df.date.dt.year.map({
+        2015: pd.Timestamp(('2015-06-24')),
+        2016: pd.Timestamp(('2016-06-29')),
+        2017: pd.Timestamp(('2017-06-28')),
+        2018: pd.Timestamp(('2018-06-27')),
+        2019: pd.Timestamp(('2019-06-26'))
+    })
+    df['days_from_wed_jun'] = (df.date - wed_june_date).dt.days.clip(-5, 5)
+
+    # First Sunday of November (second Sunday is Father's Day)
+    sun_nov_date = df.date.dt.year.map({
+        2015: pd.Timestamp(('2015-11-1')),
+        2016: pd.Timestamp(('2016-11-6')),
+        2017: pd.Timestamp(('2017-11-5')),
+        2018: pd.Timestamp(('2018-11-4')),
+        2019: pd.Timestamp(('2019-11-3'))
+    })
+    df['days_from_sun_nov'] = (df.date - sun_nov_date).dt.days.clip(-1, 9)
+
+    # end -------------------------------------------------------------
     # one hot encoding
     df = pd.get_dummies(df, columns=['store', 'country', 'product'])
     # dropping unused
@@ -100,7 +141,7 @@ if __name__ == '__main__':
     df_test = engineer(df=df_test)
     
     # saving data frame to corresponding location
-    df_train.to_csv(os.path.join(config.ROOT_DIR,'data','processed','train_feat_eng_00.csv'),index=False)
-    df_test.to_csv(os.path.join(config.ROOT_DIR,'data','processed','test_feat_eng_00.csv'),index=False)
+    df_train.to_csv(os.path.join(config.ROOT_DIR,'data','processed','train_feat_eng_01.csv'),index=False)
+    df_test.to_csv(os.path.join(config.ROOT_DIR,'data','processed','test_feat_eng_01.csv'),index=False)
 
     print('-'*20 + 'Done' + '-'*20)

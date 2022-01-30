@@ -1,5 +1,6 @@
 import os
 import config
+import numpy as np
 import pandas as pd
 
 from model_dispatcher import models
@@ -15,7 +16,10 @@ def train_folds(df, model_name):
     
     # feature and target
     xall = df[feature_cols]
-    yall = df[target_cols].values.ravel()
+    # yall = df[target_cols].values.ravel()
+
+    # transform 
+    yall = np.log1p(df[target_cols].values.ravel() / df.gdp.values.ravel())
 
     # model training
     model = models[model_name]
@@ -24,6 +28,9 @@ def train_folds(df, model_name):
     # evaluate
     y_pred_train =  model.predict(xall)
     
+    # transform
+    yall = df[target_cols].values.ravel()
+    y_pred_train = np.ceil(np.expm1(y_pred_train) * df.gdp.values.ravel())
     # metrics
     smape_train = SMAPE(yall, y_pred_train)
 
@@ -37,14 +44,14 @@ def train_folds(df, model_name):
 
 if __name__ == '__main__':
     start_time = time.time()
-    model_names = ['rf','xgb', 'cat']
+    # model_names = ['rf','xgb', 'cat']
     # model_names = ['rf','cat']
-    # model_names = ['cat']
+    model_names = ['cat']
     # model_names = ['rf']
     # model_names = ['xgb']
 
 
-    df = pd.read_csv(os.path.join(config.ROOT_DIR,"data","processed","train_feat_eng_00.csv"))
+    df = pd.read_csv(os.path.join(config.ROOT_DIR,"data","processed","train_feat_eng_01.csv"))
     
     for model_name in model_names:
         train_folds(df=df,model_name=model_name)

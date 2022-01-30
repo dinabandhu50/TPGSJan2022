@@ -21,9 +21,17 @@ def train_folds(fold, df, model_name):
     
     # feature and target
     xtrain = df_train[feature_cols]
-    ytrain = df_train[target_cols].values.ravel()
     xvalid = df_valid[feature_cols]
-    yvalid = df_valid[target_cols].values.ravel()
+    # ytrain = df_train[target_cols].values.ravel()
+    # ytrain = np.log1p(df_train[target_cols] / df_train.gdp)
+    ytrain = np.log1p(df_train[target_cols].values.ravel() / df_train.gdp.values.ravel())
+
+    # yvalid = df_valid[target_cols].values.ravel()
+    # print(np.log1p(df_valid[target_cols].values.ravel() / df_valid.gdp.values.ravel()))
+    # yvalid = np.log1p(df_valid[target_cols] / df_valid.gdp)
+    yvalid = np.log1p(df_valid[target_cols].values.ravel() / df_valid.gdp.values.ravel())
+    # print(yvalid)
+
 
     # model training
     model = models[model_name]
@@ -32,13 +40,20 @@ def train_folds(fold, df, model_name):
     if model_name == 'xgb':
         model.fit(xtrain, ytrain, eval_set = [[xtrain, ytrain],[xvalid, yvalid]])
     elif model_name == 'cat':
-        model.fit(xtrain,ytrain, eval_set = (xvalid, yvalid))
+        model.fit(xtrain,ytrain, eval_set = (xvalid, yvalid), early_stopping_rounds=1000)
     else:
         model.fit(xtrain,ytrain)
-        
+    
+
     # evaluate
     y_pred_train =  model.predict(xtrain)
     y_pred_valid =  model.predict(xvalid)
+
+    # conversion
+    ytrain = df_train[target_cols].values.ravel()
+    y_pred_train = np.ceil(np.expm1(y_pred_train) * xtrain.gdp.values.ravel())
+    yvalid = df_valid[target_cols].values.ravel()
+    y_pred_valid = np.ceil(np.expm1(y_pred_valid) * xvalid.gdp.values.ravel())
     
     # metrics
     smape_train = SMAPE(ytrain, y_pred_train)
@@ -73,7 +88,7 @@ if __name__ == '__main__':
     # model_names = ['xgb']
 
     folds = 4
-    df = pd.read_csv(os.path.join(config.ROOT_DIR,"data","processed","train_feat_eng_00.csv"))
+    df = pd.read_csv(os.path.join(config.ROOT_DIR,"data","processed","train_feat_eng_01.csv"))
     
     for model_name in model_names:
         start_time = time.time()
