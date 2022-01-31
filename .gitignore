@@ -133,3 +133,4 @@ data/
 oofs/
 models/
 logs/
+catboost_info/
