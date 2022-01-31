@@ -31,6 +31,7 @@ def train_folds(df, model_name):
     # transform
     yall = df[target_cols].values.ravel()
     y_pred_train = np.ceil(np.expm1(y_pred_train) * df.gdp.values.ravel())
+
     # metrics
     smape_train = SMAPE(yall, y_pred_train)
 
@@ -46,9 +47,9 @@ if __name__ == '__main__':
     start_time = time.time()
     # model_names = ['rf','xgb', 'cat']
     # model_names = ['rf','cat']
-    model_names = ['cat']
+    # model_names = ['cat']
     # model_names = ['rf']
-    # model_names = ['xgb']
+    model_names = ['xgb']
 
 
     df = pd.read_csv(os.path.join(config.ROOT_DIR,"data","processed","train_feat_eng_01.csv"))

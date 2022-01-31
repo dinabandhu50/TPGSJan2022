@@ -33,9 +33,9 @@ if __name__ == '__main__':
     start_time = time.time()
 
     # model_names = ['rf','xgb','cat']
-    # model_names = ['xgb']
+    model_names = ['xgb']
     # model_names = ['rf']
-    model_names = ['cat']
+    # model_names = ['cat']
 
     
     for model_name in model_names:

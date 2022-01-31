@@ -130,5 +130,6 @@ dmypy.json
 
 # custom ignores
 data/
-oofs/*.csv
-models/*.joblib
+oofs/
+models/
+logs/

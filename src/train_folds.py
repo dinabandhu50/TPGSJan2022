@@ -38,7 +38,7 @@ def train_folds(fold, df, model_name):
 
     # model train
     if model_name == 'xgb':
-        model.fit(xtrain, ytrain, eval_set = [[xtrain, ytrain],[xvalid, yvalid]])
+        model.fit(xtrain, ytrain, eval_set = [[xtrain, ytrain],[xvalid, yvalid]], verbose = False)
     elif model_name == 'cat':
         model.fit(xtrain,ytrain, eval_set = (xvalid, yvalid), early_stopping_rounds=1000)
     else:
@@ -84,8 +84,8 @@ if __name__ == '__main__':
     # model_names = ['rf','xgb', 'cat']
     # model_names = ['rf']
     # model_names = ['rf','cat']
-    model_names = ['cat']
-    # model_names = ['xgb']
+    # model_names = ['cat']
+    model_names = ['xgb']
 
     folds = 4
     df = pd.read_csv(os.path.join(config.ROOT_DIR,"data","processed","train_feat_eng_01.csv"))
