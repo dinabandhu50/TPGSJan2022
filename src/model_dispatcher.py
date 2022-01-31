@@ -6,6 +6,11 @@ from sklearn.ensemble import RandomForestRegressor
 from catboost import CatBoostRegressor
 from xgboost import XGBRegressor
 
+from mlxtend.regressor import StackingRegressor
+from sklearn.ensemble import VotingRegressor
+# from sklearn.ensemble import StackingRegressor
+
+
 SEED = config.SEED
 
 rf_param = {
@@ -74,10 +79,49 @@ cat_param = {
     'has_time': True,  
 }
 
+meta_rf_param = {
+    'random_state' : SEED+273,
+    'n_estimators' : 500,
+    'max_depth' : 6,
+    # 'min_samples_split': 0.01,
+
+    # 'min_samples_leaf':0.001,
+    'min_samples_leaf':0.008,
+
+    # 'max_features':'sqrt',
+    # 'ccp_alpha':0.000001,
+}
+
+# model loading
+model1 = CatBoostRegressor(**cat_param)
+model2 = XGBRegressor(**xgb_param)
+model3 = RandomForestRegressor(**rf_param,n_jobs=-1)
+meta_model = RandomForestRegressor(**meta_rf_param,n_jobs=-1)
+
+
+# stack model define and fitting
+stack_param = {
+    "regressors": [model1, model2, model3], 
+    "meta_regressor": meta_model, 
+    "use_features_in_secondary": True,
+    # "verbose": 1,
+    "verbose": 0,
+}
+skvote_param = {
+    'estimators': [
+        ('cat', model1), 
+        ('xgb', model2),
+        ('rf', model3),
+        ],
+    'weights':[0.5,0.3,0.2],
+    }
+
 
 # model dictionary
 models = {
     "rf" : RandomForestRegressor(**rf_param,n_jobs=-1),
     "xgb":XGBRegressor(**xgb_param),
     "cat":CatBoostRegressor(**cat_param),
+    "stack": StackingRegressor(**stack_param),
+    "skvote": VotingRegressor(**skvote_param,n_jobs=-1),
 }

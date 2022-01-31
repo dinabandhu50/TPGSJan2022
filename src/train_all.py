@@ -49,7 +49,9 @@ if __name__ == '__main__':
     # model_names = ['rf','cat']
     # model_names = ['cat']
     # model_names = ['rf']
-    model_names = ['xgb']
+    # model_names = ['xgb']
+    model_names = ['stack']
+
 
 
     df = pd.read_csv(os.path.join(config.ROOT_DIR,"data","processed","train_feat_eng_01.csv"))
